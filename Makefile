@@ -15,16 +15,16 @@ lint:
 test:
 	go test -v	
 
-define make_target
+define make
 $(1): format
 	GOOS=$(2) GOARCH=$(3) CGO_ENABLED=0 go build -v -o $(TARGET_DIR)/$(1)/${APP_NAME} -ldflags "-X="github.com/DominusAlpha/chahlikBot/cmd.appVersion=${VERSION}
 endef
 
-$(eval $(call make_target,linux,linux,amd64))
-$(eval $(call make_target,linux-arm,linux,arm64))
-$(eval $(call make_target,macos,darwin,amd64))
-$(eval $(call make_target,macos-arm,darwin,arm64))
-$(eval $(call make_target,windows,windows,amd64))
+$(eval $(call make,linux,linux,amd64))
+$(eval $(call make,linux-arm,linux,arm64))
+$(eval $(call make,macos,darwin,amd64))
+$(eval $(call make,macos-arm,darwin,arm64))
+$(eval $(call make,windows,windows,amd64))
 
 docker-build-test:
 	docker buildx build --platform=$(PLATFORM) --build-arg TARGET_OS=$(TARGET_OS) --output type=docker -t $(IMAGE_TAG) -f Dockerfile.test
