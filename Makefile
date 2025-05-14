@@ -26,7 +26,7 @@ $(eval $(call make,macos,darwin,amd64))
 $(eval $(call make,macos-arm,darwin,arm64))
 $(eval $(call make,windows,windows,amd64))
 
-docker-build-test:
+image:
 	docker buildx build --platform=$(PLATFORM) --build-arg TARGET_OS=$(TARGET_OS) --output type=docker -t $(IMAGE_TAG) -f Dockerfile.test
 
 docker-test:
