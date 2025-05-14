@@ -1,5 +1,10 @@
+APP_NAME=chahlikBot
+TARGET_DIR=build
 VERSION=$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 TARGET_OS=linux
+IMAGE_TAG=$(APP_NAME):test
+GO_FLAGS=-ldflags "-X=github.com/DominusAlpha/chahlikBot/cmd.appVersion=${VERSION}"
+PLATFORMS=linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64
 
 format:
 	gofmt -s -w ./
@@ -10,8 +15,23 @@ lint:
 test:
 	go test -v	
 
-build: format
-	CGO_ENABLED=0 GOOS=${TARGET_OS} GOARCH=${shell dpkg --print-architecture} go build -v -o chahlikBot -ldflags "-X="github.com/DominusAlpha/chahlikBot/cmd.appVersion=${VERSION}
+define make_target
+$(1): format
+	GOOS=$(2) GOARCH=$(3) CGO_ENABLED=0 go build -o ${TARGET_DIR}/$(1)/${APP_NAME} ${GO_FLAGS} .
+endef
+
+$(eval $(call make_target,linux,linux,amd64))
+$(eval $(call make_target,linux-arm,linux,arm64))
+$(eval $(call make_target,macos,darwin,amd64))
+$(eval $(call make_target,macos-arm,darwin,arm64))
+$(eval $(call make_target,windows,windows,amd64))
+
+docker-build-test:
+	docker buildx build --platform=$(PLATFORM) --build-arg TARGET_OS=$(TARGET_OS) --output type=docker -t $(IMAGE_TAG) -f Dockerfile.test .
+
+docker-test:
+	docker run --rm $(IMAGE_TAG)
 
 clean:
-	rm -rf chahlikBot	
+	rm -rf ${TARGET_DIR} ${APP_NAME}
+	docker rmi -f $(IMAGE_TAG) || true

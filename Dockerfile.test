@@ -1,0 +1,10 @@
+FROM quay.io/projectquay/golang:latest AS builder
+
+ARG TARGET_OS=linux
+WORKDIR /app
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=${TARGET_OS} go test -v ./... > test_output.txt
+
+FROM scratch
+COPY --from=builder /app/test_output.txt /test_output.txt
